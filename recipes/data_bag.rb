@@ -1,8 +1,8 @@
 #
 # Cookbook Name:: chef-server-populator
-# Attribute:: default
+# Recipe:: data_bag
 #
-# Copyright (C) 2013 Heavy Water Operations, LLC.
+# Copyright (C) 2013 Heavy Water Software Inc.
 # Copyright (C) 2014 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +18,15 @@
 # limitations under the License.
 #
 
-default['chef_server_populator']['base_path'] = '/tmp/chef-server-populator'
-default['chef_server_populator']['clients'] = {}
-default['chef_server_populator']['user'] = 'admin'
-default['chef_server_populator']['pem'] = '/etc/chef-server/admin.pem'
-default['chef_server_populator']['databag'] = nil
+clients = {}.merge(node['chef_server_populator']['clients'])
+begin
+  data_bag node['chef_server_populator']['databag'].each do |name|
+    item = data_bag_item(node['chef_server_populator']['databag'], name)
+    next unless item[:chef_server]
+    clients[name] = item[:chef_server]
+  end
+rescue Net::HTTPServerException => e
+  Chef::Log.warn "Chef Server failed to locate data bag #{node['chef_server_populator']['databag']}"
+end
+
+node.set['chef_server_populator']['clients'] = clients

@@ -1,19 +1,55 @@
-unless(node[:chef_server_populator][:restore][:file].empty?)
-  include_recipe 'chef-server-populator::restore'
-end
+#
+# Cookbook Name:: chef-server-populator
+# Recipe:: default
+#
+# Copyright (C) 2013 Heavy Water Software Inc.
+# Copyright (C) 2014 Bloomberg Finance L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
-if(Chef::Config[:solo])
-  include_recipe 'chef-server-populator::solo'
-else
-  include_recipe 'chef-server-populator::client'
+node['chef_server_populator']['clients'].each_pair do |name, item|
+  opts = "-k #{node['chef_server_populator']['pem']}"
+  opts << " -u #{node['chef_server_populator']['user']}"
+  opts << ' -s https://127.0.0.1'
+  opts << ' --admin' if item[:admin]
+  opts << ' --validator' if item[:validator]
 
-  unless(node[:chef_server_populator][:chef_server].empty?)
-    include_recipe 'chef-server-populator::configurator'
+  bash "delete client: #{name}" do
+    command "knife client delete #{name} -d #{opts}"
+    not_if item[:enabled]
+    only_if "knife client list|tr -d ' '|grep '^#{name}$'"
+  end
+
+  bash "create client: #{name}" do
+    command "knife client create #{name} -d #{opts}"
+    only_if item[:enabled]
+    not_if "knife client list #{opts}|tr -d ' '|grep '^#{name}$'"
+  end
+
+  bash "set key: #{name}" do
+    command (<<-SCRIPT)
+/opt/chef-server/embedded/bin/psql -d #{node['chef-server']['configuration']['sql_user']} \
+  -c \"UPDATE clients SET public_key=E'#{key}' WHERE name='#{name}'\"
+SCRIPT
+    user node['chef-server']['configuration']['postgresql']['username']
+    subscribes :run, "bash[create client: #{name}]", :immediately
   end
 end
 
-if((%w(amazon xenserver).include?(node.platform) && node.platform_version.to_i >= 6) || node.platform == 'fedora')
-  node.default[:chef_server_populator][:force_init] = 'upstart'
+
+unless(node[:chef_server_populator][:restore][:file].empty?)
+  include_recipe 'chef-server-populator::restore'
 end
 
 package_resource = node.run_context.resource_collection.all_resources.detect do |r|
@@ -29,4 +65,3 @@ file '/opt/chef-server/embedded/cookbooks/runit/recipes/default.rb' do
       package_resource
   end
 end
-
