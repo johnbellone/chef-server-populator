@@ -3,7 +3,7 @@
 # Recipe:: default
 #
 # Copyright (C) 2013 Heavy Water Software Inc.
-# Copyright (C) 2014 Bloomberg Finance L.P.
+# Copyright (C) 2014 Bloomberg L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,24 +44,5 @@ node['chef_server_populator']['clients'].each_pair do |name, item|
 SCRIPT
     user node['chef-server']['configuration']['postgresql']['username']
     subscribes :run, "bash[create client: #{name}]", :immediately
-  end
-end
-
-
-unless(node[:chef_server_populator][:restore][:file].empty?)
-  include_recipe 'chef-server-populator::restore'
-end
-
-package_resource = node.run_context.resource_collection.all_resources.detect do |r|
-  r.class == Chef::Resource::Package && r.package_name.include?('chef-server')
-end
-
-file '/opt/chef-server/embedded/cookbooks/runit/recipes/default.rb' do
-  content lazy{ "include_recipe 'runit::#{node[:chef_server_populator][:force_init]}'" }
-  subscribes :create, package_resource, :immediately
-  action :nothing
-  only_if do
-    node[:chef_server_populator][:force_init] &&
-      package_resource
   end
 end

@@ -3,7 +3,7 @@
 # Attribute:: default
 #
 # Copyright (C) 2013 Heavy Water Operations, LLC.
-# Copyright (C) 2014 Bloomberg Finance L.P.
+# Copyright (C) 2014 Bloomberg L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-default['chef_server_populator']['base_path'] = '/tmp/chef-server-populator'
 default['chef_server_populator']['clients'] = {}
 default['chef_server_populator']['user'] = 'admin'
 default['chef_server_populator']['pem'] = '/etc/chef-server/admin.pem'
