@@ -21,7 +21,7 @@
 node['chef_server_populator']['clients'].each_pair do |name, item|
   opts = "-k #{node['chef_server_populator']['pem']}"
   opts << " -u #{node['chef_server_populator']['user']}"
-  opts << ' -s https://127.0.0.1'
+  opts << ' -s https://127.0.0.1:443'
   opts << ' --admin' if item[:admin]
   opts << ' --validator' if item[:validator]
 
@@ -40,7 +40,7 @@ node['chef_server_populator']['clients'].each_pair do |name, item|
   bash "set key: #{name}" do
     command (<<-SCRIPT)
 /opt/chef-server/embedded/bin/psql -d #{node['chef-server']['configuration']['sql_user']} \
-  -c \"UPDATE clients SET public_key=E'#{key}' WHERE name='#{name}'\"
+  -c \"UPDATE clients SET public_key=E'#{item[:client_key]}' WHERE name='#{name}'\"
 SCRIPT
     user node['chef-server']['configuration']['postgresql']['username']
     subscribes :run, "bash[create client: #{name}]", :immediately
