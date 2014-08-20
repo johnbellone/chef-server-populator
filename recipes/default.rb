@@ -37,10 +37,10 @@ node['chef_server_populator']['clients'].each_pair do |name, item|
 
   bash "set key: #{name}" do
     command (<<-SCRIPT)
-/opt/chef-server/embedded/bin/psql -d #{node['chef_server']['postgresql']['sql_user']} \
+/opt/chef-server/embedded/bin/psql -d opscode_chef \
   -c \"UPDATE clients SET public_key=E'#{item[:client_key]}' WHERE name='#{name}'\"
 SCRIPT
-    user node['chef_server']['postgresql']['username']
+    user 'opscode-pgsql'
     subscribes :run, "bash[create client: #{name}]", :immediately
   end
 end
