@@ -1,8 +1,8 @@
-## Chef Server Populator
-
-Creates admin clients and installs provided public key. Simplifies managing and
-recreating erchef nodes. Provides backup and restore recipes for
-complete erchef recovery.
+chef-server-populator cookbook
+==============================
+Creates both admin and validation clients. Installs the public key
+set within the data bag item. This vastly simplifies the management
+and recreation process of erchef nodes.
 
 ### Usage
 
@@ -39,7 +39,7 @@ Restoring from a backup:
 
 * Set path to restore file with node[:chef_server_populator][:restore][:file]
 * The restore recipe is run if a restore file is set
-* The restore file can be remote or local 
+* The restore file can be remote or local
 
 When enabling backups:
 
@@ -50,7 +50,7 @@ When enabling backups:
 
 ## Extras
 
-Need to use the IP address of the node for a bit, or another name  instead of 
+Need to use the IP address of the node for a bit, or another name  instead of
 having `node[:fqdn]`?
 
 * `node[:chef_server_populator][:servername_override]`
