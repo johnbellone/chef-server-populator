@@ -27,13 +27,11 @@ node['chef_server_populator']['clients'].each_pair do |name, item|
 
   bash "delete client: #{name}" do
     command "knife client delete #{name} -d #{opts}"
-    not_if item[:enabled]
-    only_if "knife client list|tr -d ' '|grep '^#{name}$'"
+    only_if "knife client list #{opts}|tr -d ' '|grep '^#{name}$'"
   end
 
   bash "create client: #{name}" do
     command "knife client create #{name} -d #{opts}"
-    only_if item[:enabled]
     not_if "knife client list #{opts}|tr -d ' '|grep '^#{name}$'"
   end
 
