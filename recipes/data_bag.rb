@@ -24,8 +24,7 @@ bag_name = node['chef_server_populator']['bag_name']
 bag_search = node['chef_server_populator']['bag_search']
 
 # This assumes structure of the data bag item from the README file.
-search(bag_name, bag_search).each do |name|
-  item = data_bag_item(bag_name, name)
+search(bag_name, bag_search).each do |item|
   next unless item[:chef_server]
   next unless item[:chef_server][:enabled]
   clients[name] = item[:chef_server]
