@@ -25,13 +25,13 @@ users = {}.merge(node['chef_server_populator']['users'])
 search(:clients, node['chef_server_populator']['bag_search']).each do |item|
   next unless item[:chef_server]
   next unless item[:chef_server][:enabled]
-  clients.set(item[:id]) = item[:chef_server]
+  clients.store(item[:id], item[:chef_server])
 end
 
 search(:users, node['chef_server_populator']['bag_search']).each do |item|
   next unless item[:chef_server]
   next unless item[:chef_server][:enabled]
-  users.set(item[:id]) = item[:chef_server]
+  users.store(item[:id], item[:chef_server])
 end
 
 node.set['chef_server_populator']['clients'] = clients
