@@ -37,7 +37,6 @@ node['chef_server_populator']['clients'].each_pair do |name, item|
     chef_server local_server
     source_key public_key
     validator item[:validator]
-    admin item[:admin]
   end
 end
 
