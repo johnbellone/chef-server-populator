@@ -3,7 +3,7 @@
 # Recipe:: data_bag
 #
 # Copyright (C) 2013 Heavy Water Software Inc.
-# Copyright (C) 2014 Bloomberg Finance L.P.
+# Copyright (C) 2014 Bloomberg L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,17 +20,20 @@
 return if Chef::Config[:solo]
 
 clients = {}.merge(node['chef_server_populator']['clients'])
-bag_name = node['chef_server_populator']['bag_name']
-bag_search = node['chef_server_populator']['bag_search']
+users = {}.merge(node['chef_server_populator']['users'])
 
-# This assumes structure of the data bag item from the README file.
-search(bag_name, bag_search).each do |item|
-  name = item[:id]
+search(:clients, node['chef_server_populator']['bag_search']).each do |item|
   next unless item[:chef_server]
   next unless item[:chef_server][:enabled]
-  clients[name] = item[:chef_server]
+  clients.set(item[:id]) = item[:chef_server]
+end
+
+search(:users, node['chef_server_populator']['bag_search']).each do |item|
+  next unless item[:chef_server]
+  next unless item[:chef_server][:enabled]
+  users.set(item[:id]) = item[:chef_server]
 end
 
 node.set['chef_server_populator']['clients'] = clients
-
+node.set['chef_server_populator']['users'] = users
 include_recipe 'chef-server-populator::default'

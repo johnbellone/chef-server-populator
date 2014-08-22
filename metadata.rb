@@ -5,3 +5,4 @@ maintainer_email 'support@hw-ops.com'
 version '0.4.0'
 
 depends 'chef-server'
+depends 'chef-sugar'

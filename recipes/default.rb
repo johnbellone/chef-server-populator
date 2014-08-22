@@ -17,30 +17,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+include_recipe 'chef-server::default'
 
-node['chef_server_populator']['clients'].each_pair do |name, item|
-  opts = "-k #{node['chef_server_populator']['pem']}"
-  opts << " -u #{node['chef_server_populator']['user']}"
-  opts << ' -s https://127.0.0.1:443'
-  opts << ' --admin' if item[:admin]
-  opts << ' --validator' if item[:validator]
+include_recipe 'chef-sugar::default'
+require_chef_gem 'cheffish'
 
-  bash "delete client: #{name}" do
-    command "knife client delete #{name} -d #{opts}"
-    only_if "knife client list #{opts}|tr -d ' '|grep '^#{name}$'"
+local_server = {
+  chef_server_url: 'https://127.0.0.1',
+  options: {
+    client_name: node['chef_server_populator']['user'],
+    signing_key_filename: node['chef_server_populator']['pem']
+  }
+}
+
+node['chef_server_populator']['clients'].each do |item|
+  chef_client item[:id] do
+    chef_server local_server
+    source_key item[:client_key]
+    validator item[:validator]
+    admin item[:admin]
   end
+end
 
-  bash "create client: #{name}" do
-    command "knife client create #{name} -d #{opts}"
-    not_if "knife client list #{opts}|tr -d ' '|grep '^#{name}$'"
-  end
+node['chef_server_populator']['users'].each do |item|
+  # In order to perform automatic administration of a Chef Server we are going
+  # to need to rely on the fact that /etc/chef-server/admin.pem will always be
+  # the correct key.
+  next if item[:id] == node['chef_server_populator']['user']
 
-  bash "set key: #{name}" do
-    command (<<-SCRIPT)
-/opt/chef-server/embedded/bin/psql -d opscode_chef \
-  -c \"UPDATE clients SET public_key=E'#{item[:client_key]}' WHERE name='#{name}'\"
-SCRIPT
-    user 'opscode-pgsql'
-    subscribes :run, "bash[create client: #{name}]", :immediately
+  chef_user item[:id] do
+    chef_server local_server
+    source_key item[:client_key]
+    admin item[:admin]
+    email item[:email]
   end
 end
