@@ -22,6 +22,8 @@ include_recipe 'chef-server::default'
 include_recipe 'chef-sugar::default'
 require_chef_gem 'cheffish'
 
+require 'securerandom'
+
 local_server = {
   chef_server_url: 'https://127.0.0.1:443',
   options: {
@@ -51,6 +53,7 @@ node['chef_server_populator']['users'].each_pair do |name, item|
   chef_user name do
     chef_server local_server
     source_key public_key
+    password SecureRandom.hex
     admin item[:admin]
     email item[:email]
   end
