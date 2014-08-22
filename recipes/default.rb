@@ -30,8 +30,8 @@ local_server = {
   }
 }
 
-node['chef_server_populator']['clients'].each do |item|
-  chef_client item[:id] do
+node['chef_server_populator']['clients'].each_pair do |name, item|
+  chef_client name do
     chef_server local_server
     source_key item[:client_key]
     validator item[:validator]
@@ -39,13 +39,13 @@ node['chef_server_populator']['clients'].each do |item|
   end
 end
 
-node['chef_server_populator']['users'].each do |item|
+node['chef_server_populator']['users'].each_pair do |name, item|
   # In order to perform automatic administration of a Chef Server we are going
   # to need to rely on the fact that /etc/chef-server/admin.pem will always be
   # the correct key.
-  next if item[:id] == node['chef_server_populator']['user']
+  next if name == node['chef_server_populator']['user']
 
-  chef_user item[:id] do
+  chef_user name do
     chef_server local_server
     source_key item[:client_key]
     admin item[:admin]
