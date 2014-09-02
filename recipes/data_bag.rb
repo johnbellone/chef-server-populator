@@ -22,11 +22,15 @@ return if Chef::Config[:solo]
 %w(clients users admins sysadmins).each do |bag_name|
   items = {}.merge(node['chef_server_populator'][bag_name])
 
-  search(bag_name, node['chef_server_populator']['bag_search']) do |item|
-    next unless item[:chef_server]
-    next unless item[:chef_server][:enabled]
-    items.store(item[:id], item[:chef_server])
-  end
+  begin
+    search(bag_name.to_sym, node['chef_server_populator']['bag_search']).each do |item|
+      next unless item[:chef_server]
+      next unless item[:chef_server][:enabled]
+      items.store(item[:id], item[:chef_server])
+    end
 
-  node.set['chef_server_populator'][bag_name] = items
+    node.set['chef_server_populator'][bag_name] = items
+  rescue Net::HTTPServerException => ex
+    warn "Data bag '#{bag_name}' does not exist!"
+  end
 end
