@@ -19,6 +19,8 @@
 #
 default['chef_server_populator']['clients'] = {}
 default['chef_server_populator']['users'] = {}
+default['chef_server_populator']['admins'] = {}
+default['chef_server_populator']['sysadmins'] = {}
 default['chef_server_populator']['user'] = 'admin'
 default['chef_server_populator']['pem'] = '/etc/chef-server/admin.pem'
 default['chef_server_populator']['bag_search'] = '*:*'

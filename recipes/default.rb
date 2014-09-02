@@ -42,19 +42,21 @@ node['chef_server_populator']['clients'].each_pair do |name, item|
   end
 end
 
-node['chef_server_populator']['users'].each_pair do |name, item|
-  # In order to perform automatic administration of a Chef Server we are going
-  # to need to rely on the fact that /etc/chef-server/admin.pem will always be
-  # the correct key.
-  next if name == node['chef_server_populator']['user']
+%w(users admins sysadmins).each do |resource_type|
+  node['chef_server_populator'][resource_type].each_pair do |name, item|
+    # In order to perform automatic administration of a Chef Server we
+    # are going to need to rely on the fact that
+    # /etc/chef-server/admin.pem will always be the correct key.
+    next if name == node['chef_server_populator']['user']
 
-  # TODO: Fix when Cheffish can accept public keys that are strings.
-  public_key = OpenSSL::PKey::RSA.new(item[:client_key])
-  chef_user name do
-    chef_server local_server
-    source_key public_key
-    password SecureRandom.hex
-    admin item[:admin]
-    email item[:email]
+    # TODO: Fix when Cheffish can accept public keys that are strings.
+    public_key = OpenSSL::PKey::RSA.new(item[:client_key])
+    chef_user name do
+      chef_server local_server
+      source_key public_key
+      password SecureRandom.hex
+      admin item[:admin]
+      email item[:email]
+    end
   end
 end

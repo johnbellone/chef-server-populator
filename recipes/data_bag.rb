@@ -19,21 +19,14 @@
 #
 return if Chef::Config[:solo]
 
-clients = {}.merge(node['chef_server_populator']['clients'])
-users = {}.merge(node['chef_server_populator']['users'])
+%w(clients users admins sysadmins).each do |bag_name|
+  items = {}.merge(node['chef_server_populator'][bag_name])
 
-search(:clients, node['chef_server_populator']['bag_search']).each do |item|
-  next unless item[:chef_server]
-  next unless item[:chef_server][:enabled]
-  clients.store(item[:id], item[:chef_server])
+  search(bag_name, node['chef_server_populator']['bag_search']) do |item|
+    next unless item[:chef_server]
+    next unless item[:chef_server][:enabled]
+    items.store(item[:id], item[:chef_server])
+  end
+
+  node.set['chef_server_populator'][bag_name] = items
 end
-
-search(:users, node['chef_server_populator']['bag_search']).each do |item|
-  next unless item[:chef_server]
-  next unless item[:chef_server][:enabled]
-  users.store(item[:id], item[:chef_server])
-end
-
-node.set['chef_server_populator']['clients'] = clients
-node.set['chef_server_populator']['users'] = users
-include_recipe 'chef-server-populator::default'
