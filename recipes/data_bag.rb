@@ -34,3 +34,5 @@ return if Chef::Config[:solo]
     warn "Data bag '#{bag_name}' does not exist!"
   end
 end
+
+include_recipe 'chef-server-populator::default'
